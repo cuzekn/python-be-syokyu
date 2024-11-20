@@ -1,13 +1,16 @@
 import os
 from datetime import datetime
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from pydantic import BaseModel, Field
 
 from app.const import TodoItemStatusCode
 
 from .models.item_model import ItemModel
 from .models.list_model import ListModel
+
+from .dependencies import get_db
+from sqlalchemy.orm import Session
 
 DEBUG = os.environ.get("DEBUG", "") == "true"
 
@@ -87,3 +90,8 @@ def get_health():
     return {
     "status": "ok"
 }
+
+@app.get("/lists/{todo_list_id}", tags=["Todoリスト"])
+def get_todo_list(todo_list_id: int, session: Session = Depends(get_db)):
+    db_item = session.query(ListModel).filter(ListModel.id == todo_list_id).first()
+    return db_item
