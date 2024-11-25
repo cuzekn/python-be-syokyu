@@ -95,3 +95,16 @@ def get_health():
 def get_todo_list(todo_list_id: int, session: Session = Depends(get_db)):
     db_item = session.query(ListModel).filter(ListModel.id == todo_list_id).first()
     return db_item
+
+@app.post("/lists", tags=["Todoリスト"])
+def post_todo_list(new_todo_list: NewTodoList, session: Session = Depends(get_db)):
+    db_item = ListModel(
+        title=new_todo_list.title,
+        description=new_todo_list.description,
+        created_at=datetime.now(),
+        updated_at=datetime.now()
+    )
+    session.add(db_item)
+    session.commit()
+    session.refresh(db_item)
+    return db_item
