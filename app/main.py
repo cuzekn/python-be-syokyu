@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from app.const import TodoItemStatusCode
@@ -105,6 +105,19 @@ def post_todo_list(new_todo_list: NewTodoList, session: Session = Depends(get_db
         updated_at=datetime.now()
     )
     session.add(db_item)
+    session.commit()
+    session.refresh(db_item)
+    return db_item
+
+@app.put("/lists/{todo_list_id}", tags=["Todoリスト"])
+def put_todo_list(todo_list_id: int,update_todo_list: UpdateTodoList, session: Session = Depends(get_db)):
+    db_item = session.query(ListModel).filter(ListModel.id == todo_list_id).first()
+    if update_todo_list.title is not None:
+        db_item.title = update_todo_list.title
+    if update_todo_list.description is not None:
+        db_item.description = update_todo_list.description
+    db_item.updated_at = datetime.now()
+
     session.commit()
     session.refresh(db_item)
     return db_item
